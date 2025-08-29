@@ -1,2 +1,163 @@
-c:=d*(e-21)/4
+#+ ======================================== +#
+#+ ARCHIVO DE PRUEBAS - COMPILADOR LYC +#
+#+ ======================================== +#
+#+ Este archivo contiene ejemplos de todos los temas comunes y especiales +#
 
+#+ Bloque de declaracion de variables +#
+init {
+    x, y, z : Int
+    a, b, c : Float
+    nombre, apellido : String
+    activo : Bool
+    caracter : Char
+    resultado : Int
+    complejo : Float
+    condicion1, condicion2 : Bool
+    igual, diferente, menor, mayor, menor_igual, mayor_igual : Bool
+    expresion_compleja : Int
+    i, j : Int
+    negacion : Bool
+    valor : Int
+    decimal : Float
+    letra : Char
+    texto : String
+    condicion : Bool
+}
+
+#+ Inicializacion de variables +#
+x := 42
+y := 10
+z := x + y * 2
+a := 3.14
+b := 2.718
+c := a * b
+nombre := "Juan"
+apellido := "Perez"
+activo := true
+caracter := 'A'
+
+#+ Expresiones aritmeticas basicas +#
+resultado := x + y * 2
+resultado := (x + y) * 2
+resultado := x ** 2 + y ** 2
+resultado := x % 10
+
+#+ Expresiones con parentesis anidados +#
+complejo := ((x + y) * (z - 5)) / (a + b)
+
+#+ Verificacion de cotas para constantes +#
+#+ ERROR: Constante excede rango permitido +#
+#+ const int VALOR_GRANDE = 9999999999; +#
+
+#+ Verificacion de longitud de identificadores +#
+#+ ERROR: Identificador muy largo +#
+#+ int variable_con_nombre_muy_largo_que_excede_el_limite_permitido; +#
+
+#+ Comentarios de una linea +#
+#+ Este es un comentario simple +#
+
+#+ Comentarios de bloque +#
+#+ Este es un comentario
+   que puede ocupar
+   varias lineas +#
+
+#+ Estructuras de seleccion +#
+if (x > 0) {
+    resultado := x * 2
+} else {
+    resultado := x / 2
+}
+
+if (x == 0) {
+    resultado := 0
+} else if (x > 0) {
+    resultado := 1
+} else {
+    resultado := -1
+}
+
+#+ Estructuras de iteracion - solo while +#
+while (x > 0) {
+    resultado := resultado + x
+    x := x - 1
+}
+
+while (a > b) {
+    nombre := "a es mas grande que b"
+    a := a + 1
+}
+
+#+ Ciclos anidados +#
+while (i < 5) {
+    while (j < 5) {
+        resultado := resultado + i * j
+        j := j + 1
+    }
+    i := i + 1
+}
+
+#+ Estructuras de control anidadas +#
+if (x > 0) {
+    if (y > 0) {
+        resultado := x + y
+    } else {
+        resultado := x - y
+    }
+} else {
+    while (x < 0) {
+        x := x + 1
+    }
+}
+
+#+ Expresiones logicas 
+condicion1 := (x > 0) AND (y > 0)
+condicion2 := (x == 0) OR (y == 0)
+negacion := NOT condicion1
+
+#+ Operadores de comparacion 
+igual := x == y
+diferente := x != y
+menor := x < y
+mayor := x > y
+menor_igual := x <= y
+mayor_igual := x >= y +#
+
+if (a > b AND c > b)
+{
+    write("a es mas grande que b y c es mas grande que b")
+}
+
+if (a > b OR c > b)
+{
+    write("a es mas grande que b y c es mas grande que b")
+}
+
+if (NOT a > b)
+{
+    write("a es mas grande que b y c es mas grande que b")
+}
+
+#+ Expresiones complejas +#
+expresion_compleja := (x + y) * (z - 5) / (a + b) % 10
+
+#+ Ciclo while simple +#
+while (i < 100) {
+    if (i == 50) {
+        i := 100
+    }
+    if (i % 2 == 0) {
+        i := i + 2
+    } else {
+        resultado := resultado + i
+        i := i + 1
+    }
+}
+
+#+ ERROR: Caracter no valido +#
+#+ int variable#; +#
+
+#+ ERROR: Constante excede rango permitido +#
+#+ const int VALOR_GRANDE = 9999999999; +#
+
+#+ ERROR: Identificador muy largo +#
+#+ int variable_con_nombre_muy_largo_que_excede_el_limite_permitido; +#
