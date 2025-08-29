@@ -22,6 +22,7 @@ init {
     letra : Char
     texto : String
     condicion : Bool
+    resultado_equal : Bool
 }
 
 #+ Inicializacion de variables +#
@@ -151,6 +152,23 @@ while (i < 100) {
         resultado := resultado + i
         i := i + 1
     }
+}
+
+#+ PRUEBAS DE LA FUNCION equalExpressions +#
+#+ Prueba 1: Expresiones con igualdades (debe retornar true) +#
+resultado_equal := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b)
+
+#+ Prueba 2: Expresiones todas diferentes (debe retornar false) +#
+resultado_equal := equalExpressions(0, -5, a + b)
+
+#+ Prueba 3: Expresiones complejas con igualdades +#
+resultado_equal := equalExpressions(x + y, z, x + y, 52)
+
+#+ Prueba 4: Uso de equalExpressions en condicion if +#
+if (equalExpressions(x, y, z)) {
+    write("Existen expresiones iguales")
+} else {
+    write("Todas las expresiones son diferentes")
 }
 
 #+ ERROR: Caracter no valido +#

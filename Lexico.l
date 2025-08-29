@@ -246,6 +246,7 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
 "void"          { printf("Palabra reservada: void\n"); return VOID; }
 "main"          { printf("Palabra reservada: main\n"); return MAIN; }
 "write"         { printf("Palabra reservada: write\n"); return WRITE; }
+"equalExpressions" { printf("Funcion: equalExpressions\n"); return EQUAL_EXPRESSIONS; }
 "AND"            { printf("Operador AND: %s\n", yytext); return OP_AND; }
 "OR"             { printf("Operador OR: %s\n", yytext); return OP_OR; }
 "NOT"            { printf("Operador NOT: %s\n", yytext); return OP_NOT; }

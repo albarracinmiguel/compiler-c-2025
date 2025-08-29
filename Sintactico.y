@@ -26,7 +26,7 @@ int num_errores = 0;
 %token OP_IGUAL OP_DIF OP_MENOR OP_MAYOR OP_MENOR_IGUAL OP_MAYOR_IGUAL
 %token OP_AND OP_OR OP_NOT
 %token PAR_A PAR_C COR_A COR_C LLAVE_A LLAVE_C PUNTO_COMA COMA PUNTO DOS_PUNTOS
-%token IF ELSE WHILE RETURN WRITE
+%token IF ELSE WHILE RETURN WRITE EQUAL_EXPRESSIONS
 %token INT FLOAT CHAR STRING BOOL TRUE FALSE VOID MAIN CONST INIT
 
 %type <ival> expresion termino factor
@@ -135,15 +135,14 @@ condicion:
 
 expresion_logica:
     expresion_relacional
-    { printf("Expresion logica: expresion_relacional\n"); }
     | expresion_logica OP_AND expresion_logica
-    { printf("Expresion logica: AND\n"); }
+    { printf("Expresion logica AND\n"); }
     | expresion_logica OP_OR expresion_logica
-    { printf("Expresion logica: OR\n"); }
+    { printf("Expresion logica OR\n"); }
     | OP_NOT expresion_logica
-    { printf("Expresion logica: NOT\n"); }
+    { printf("Expresion logica NOT\n"); }
     | PAR_A expresion_logica PAR_C
-    { printf("Expresion logica: entre parentesis\n"); }
+    { printf("Expresion logica entre parentesis\n"); }
     ;
 
 expresion_relacional:
@@ -207,6 +206,15 @@ factor:
     { printf("Valor logico true es factor\n"); }
     | FALSE
     { printf("Valor logico false es factor\n"); }
+    | EQUAL_EXPRESSIONS PAR_A lista_expresiones PAR_C
+    { printf("Funcion equalExpressions\n"); }
+    ;
+
+lista_expresiones:
+    expresion
+    { printf("Primera expresion en lista\n"); }
+    | lista_expresiones COMA expresion
+    { printf("Expresion adicional en lista\n"); }
     ;
 
 %%
