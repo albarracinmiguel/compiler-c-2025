@@ -250,6 +250,7 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
 "AND"            { printf("Operador AND: %s\n", yytext); return OP_AND; }
 "OR"             { printf("Operador OR: %s\n", yytext); return OP_OR; }
 "NOT"            { printf("Operador NOT: %s\n", yytext); return OP_NOT; }
+"convDate"      { printf("Funcion: convDate\n"); return CONVDATE; }
 
 {ID}            { 
     static int primera_vez = 1;

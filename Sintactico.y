@@ -26,7 +26,7 @@ int num_errores = 0;
 %token OP_IGUAL OP_DIF OP_MENOR OP_MAYOR OP_MENOR_IGUAL OP_MAYOR_IGUAL
 %token OP_AND OP_OR OP_NOT
 %token PAR_A PAR_C COR_A COR_C LLAVE_A LLAVE_C PUNTO_COMA COMA PUNTO DOS_PUNTOS
-%token IF ELSE WHILE RETURN WRITE EQUAL_EXPRESSIONS
+%token IF ELSE WHILE RETURN WRITE EQUAL_EXPRESSIONS CONVDATE
 %token INT FLOAT CHAR STRING BOOL TRUE FALSE VOID MAIN CONST INIT
 
 %type <ival> expresion termino factor
@@ -208,6 +208,8 @@ factor:
     { printf("Valor logico false es factor\n"); }
     | EQUAL_EXPRESSIONS PAR_A lista_expresiones PAR_C
     { printf("Funcion equalExpressions\n"); }
+    | CONVDATE PAR_A CTE OP_RES CTE OP_RES CTE PAR_C
+    { printf("Funcion convDate\n"); }
     ;
 
 lista_expresiones:

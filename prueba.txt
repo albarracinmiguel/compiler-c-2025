@@ -179,3 +179,16 @@ if (equalExpressions(x, y, z)) {
 
 #+ ERROR: Identificador muy largo +#
 #+ int variable_con_nombre_muy_largo_que_excede_el_limite_permitido; +#
+
+#+ PRUEBAS DE LA FUNCION convDate +#
+#+ Prueba 1: La fecha 21-08-2025 es convertida exitosamente (debe retornar 20250821) +#
+resultado_convDate := convDate(21-08-2025)
+
+#+ERROR: Longitud de fecha insuficiente+#
+#+resultado_convDate := convDate(21-08-202) +#
+
+#+ERROR: Longitud de fecha en exceso+#
+#+resultado_convDate := convDate(21-08-20256) +#
+
+#+ERROR: Fecha no valida+#
+#+resultado_convDate := convDate(30-02-2025) +#
