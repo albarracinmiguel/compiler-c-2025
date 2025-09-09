@@ -20,7 +20,7 @@ int num_errores = 0;
     char *sval;
 }
 
-%token <ival> CTE CTE_REAL CTE_STRING CTE_CHAR
+%token <ival> CTE CTE_REAL CTE_STRING CTE_CHAR CTE_DATE
 %token <sval> ID
 %token OP_AS OP_SUM OP_MUL OP_RES OP_DIV OP_MOD OP_POT
 %token OP_IGUAL OP_DIF OP_MENOR OP_MAYOR OP_MENOR_IGUAL OP_MAYOR_IGUAL

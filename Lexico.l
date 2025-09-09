@@ -86,6 +86,7 @@ CTE_OCT          "0"{DIGITO_OCT}+
 CTE_REAL         {DIGITO}+"."{DIGITO}+
 CTE_STRING       \"[^\"]*\"
 CTE_CHAR         \'[^\']\'
+CTE_DATE         {DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}
 
 ID               {LETRA}({LETRA}|{DIGITO}|"_")*
 
@@ -204,6 +205,24 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
     agregar_simbolo(yytext, "CONSTANTE_CHAR", yytext, yylineno);
     yylval.ival = yytext[1];
     return CTE_CHAR;
+}
+
+{CTE_DATE}    { 
+    static int primera_vez = 1;
+    if (primera_vez) {
+        inicializar_lexer();
+        primera_vez = 0;
+    }
+    
+    printf("Constante Fecha Convertida: %s\n", yytext);
+    // Verificar rango de constantes
+    if (strlen(yytext) > 10) {
+        printf("ERROR: La fecha excede el rango permitido: %s\n", yytext);
+        exit(1);
+    }
+    agregar_simbolo(yytext, "CONSTANTE_DATE", yytext, yylineno);
+    yylval.sval = strdup(yytext);
+    return CTE_DATE;
 }
 
 "init"          { 
