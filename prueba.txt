@@ -33,9 +33,18 @@ a := 3.14
 b := 2.718
 c := a * b
 nombre := "Juan"
+apellido := "Juan"
 apellido := "Perez"
 activo := true
 caracter := 'A'
+complejo := 1.01
+complejo := 1.0100000
+complejo := 1.01
+complejo := 1.0100000
+complejo := 2
+complejo := 2
+complejo := 2.0
+complejo := 2.00
 
 #+ Expresiones aritmeticas basicas +#
 resultado := x + y * 2

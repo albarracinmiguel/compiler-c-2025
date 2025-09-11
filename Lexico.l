@@ -19,8 +19,68 @@ typedef struct {
 Simbolo tabla_simbolos[1000];
 int num_simbolos = 0;
 
-// Funcion para agregar simbolo a la tabla
+
+void normalizar_numero_real(char* numero) {
+    int len = strlen(numero);
+    // buscar el punto
+    char* punto = strchr(numero, '.');
+    if (punto != NULL) {
+        // eliminar ceros innecesarios
+        int i = len - 1;
+        while (i > 0 && numero[i] == '0' && i > (punto - numero)) {
+            numero[i] = '\0';
+            i--;
+        }
+        // si termina en punto agregar un cero
+        if (numero[i] == '.') {
+            numero[i+1] = '0';
+            numero[i+2] = '\0';
+        }
+    }
+}
+
+// eliminar ceros a la izquierda
+void normalizar_numero_entero(char* numero) {
+    int len = strlen(numero);
+    int i = 0;
+    
+    while (i < len - 1 && numero[i] == '0') {
+        i++;
+    }
+    
+    if (i > 0) {
+        int j = 0;
+        while (i < len) {
+            numero[j] = numero[i];
+            i++;
+            j++;
+        }
+        numero[j] = '\0';
+    }
+}
+
+int buscar_constante_por_valor(char* valor, char* tipo) {
+    for (int i = 0; i < num_simbolos; i++) {
+        if (strcmp(tabla_simbolos[i].tipo, tipo) == 0 && 
+            strcmp(tabla_simbolos[i].valor, valor) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 void agregar_simbolo(char* nombre, char* tipo, char* valor, int linea) {
+    // verificar si ya existe una con el mismo valor
+    if (strstr(tipo, "CONSTANTE") != NULL) {
+        int indice_existente = buscar_constante_por_valor(valor, tipo);
+        if (indice_existente != -1) {
+            printf("Constante duplicada detectada: %s (ya existe en linea %d)\n", 
+                   valor, tabla_simbolos[indice_existente].linea);
+            return; // no agregar dup
+        }
+    }
+    
     if (num_simbolos < 1000) {
         strcpy(tabla_simbolos[num_simbolos].nombre, nombre);
         strcpy(tabla_simbolos[num_simbolos].tipo, tipo);
@@ -31,7 +91,6 @@ void agregar_simbolo(char* nombre, char* tipo, char* valor, int linea) {
     }
 }
 
-// Funcion para buscar simbolo en la tabla
 int buscar_simbolo(char* nombre) {
     for (int i = 0; i < num_simbolos; i++) {
         if (strcmp(tabla_simbolos[i].nombre, nombre) == 0) {
@@ -41,7 +100,6 @@ int buscar_simbolo(char* nombre) {
     return -1;
 }
 
-// Funcion para generar archivo de tabla de simbolos
 void generar_tabla_simbolos() {
     FILE *archivo = fopen("symbol-table.txt", "w");
     if (archivo != NULL) {
@@ -130,15 +188,20 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
         primera_vez = 0;
     }
     
-    printf("Constante: %s\n", yytext);
+    // Normalizar el numero entero
+    char numero_normalizado[50];
+    strcpy(numero_normalizado, yytext);
+    normalizar_numero_entero(numero_normalizado);
+    
+    printf("Constante: %s (normalizada: %s)\n", yytext, numero_normalizado);
     // Verificar rango de constantes
-    long valor = atol(yytext);
+    long valor = atol(numero_normalizado);
     if (valor > 2147483647) {
-        printf("ERROR: Constante decimal excede el rango permitido: %s\n", yytext);
+        printf("ERROR: Constante decimal excede el rango permitido: %s\n", numero_normalizado);
         exit(1);
     }
-    agregar_simbolo(yytext, "CONSTANTE", yytext, yylineno);
-    yylval.ival = atoi(yytext);
+    agregar_simbolo(numero_normalizado, "CONSTANTE", numero_normalizado, yylineno);
+    yylval.ival = atoi(numero_normalizado);
     return CTE;
 }
 
@@ -175,9 +238,13 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
         primera_vez = 0;
     }
     
-    printf("Constante real: %s\n", yytext);
-    agregar_simbolo(yytext, "CONSTANTE_REAL", yytext, yylineno);
-    yylval.ival = (int)atof(yytext);
+    char numero_normalizado[50];
+    strcpy(numero_normalizado, yytext);
+    normalizar_numero_real(numero_normalizado);
+    
+    printf("Constante real: %s (normalizada: %s)\n", yytext, numero_normalizado);
+    agregar_simbolo(numero_normalizado, "CONSTANTE_REAL", numero_normalizado, yylineno);
+    yylval.ival = (int)atof(numero_normalizado);
     return CTE_REAL;
 }
 
@@ -188,9 +255,15 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
         primera_vez = 0;
     }
     
-    printf("Constante string: %s\n", yytext);
-    agregar_simbolo(yytext, "CONSTANTE_STRING", yytext, yylineno);
-    yylval.sval = strdup(yytext);
+    // sacar las comillas
+    char contenido[100];
+    int len = strlen(yytext);
+    strncpy(contenido, yytext + 1, len - 2);
+    contenido[len - 2] = '\0';
+    
+    printf("Constante string: %s (contenido: %s)\n", yytext, contenido);
+    agregar_simbolo(contenido, "CONSTANTE_STRING", contenido, yylineno);
+    yylval.sval = strdup(contenido);
     return CTE_STRING;
 }
 
@@ -201,8 +274,13 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
         primera_vez = 0;
     }
     
-    printf("Constante char: %s\n", yytext);
-    agregar_simbolo(yytext, "CONSTANTE_CHAR", yytext, yylineno);
+    // sacar apostrofes
+    char contenido[10];
+    contenido[0] = yytext[1];
+    contenido[1] = '\0';
+    
+    printf("Constante char: %s (contenido: %s)\n", yytext, contenido);
+    agregar_simbolo(contenido, "CONSTANTE_CHAR", contenido, yylineno);
     yylval.ival = yytext[1];
     return CTE_CHAR;
 }
