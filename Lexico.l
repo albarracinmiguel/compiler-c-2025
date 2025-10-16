@@ -4,7 +4,7 @@
 #include <string.h>
 #include "y.tab.h"
 
-FILE *yyin;
+extern FILE *yyin;
 extern YYSTYPE yylval;
 
 // Estructura para tabla de simbolos
@@ -140,11 +140,9 @@ DIGITO_OCT       [0-7]
 
 CTE              {DIGITO}+
 CTE_HEX          "0x"{DIGITO_HEX}+
-CTE_OCT          "0"{DIGITO_OCT}+
 CTE_REAL         {DIGITO}+"."{DIGITO}+
 CTE_STRING       \"[^\"]*\"
 CTE_CHAR         \'[^\']\'
-CTE_DATE         {DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}{DIGITO}
 
 ID               {LETRA}({LETRA}|{DIGITO}|"_")*
 
@@ -218,18 +216,6 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
     return CTE;
 }
 
-{CTE_OCT}       { 
-    static int primera_vez = 1;
-    if (primera_vez) {
-        inicializar_lexer();
-        primera_vez = 0;
-    }
-    
-    printf("Constante octal: %s\n", yytext);
-    agregar_simbolo(yytext, "CONSTANTE_OCT", yytext, yylineno);
-    yylval.ival = (int)strtol(yytext, NULL, 8);
-    return CTE;
-}
 
 {CTE_REAL}      { 
     static int primera_vez = 1;
@@ -244,7 +230,7 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
     
     printf("Constante real: %s (normalizada: %s)\n", yytext, numero_normalizado);
     agregar_simbolo(numero_normalizado, "CONSTANTE_REAL", numero_normalizado, yylineno);
-    yylval.ival = (int)atof(numero_normalizado);
+    yylval.sval = strdup(numero_normalizado);
     return CTE_REAL;
 }
 
@@ -285,23 +271,7 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
     return CTE_CHAR;
 }
 
-{CTE_DATE}    { 
-    static int primera_vez = 1;
-    if (primera_vez) {
-        inicializar_lexer();
-        primera_vez = 0;
-    }
-    
-    printf("Constante Fecha Convertida: %s\n", yytext);
-    // Verificar rango de constantes
-    if (strlen(yytext) > 10) {
-        printf("ERROR: La fecha excede el rango permitido: %s\n", yytext);
-        exit(1);
-    }
-    agregar_simbolo(yytext, "CONSTANTE_DATE", yytext, yylineno);
-    yylval.sval = strdup(yytext);
-    return CTE_DATE;
-}
+
 
 "init"          { 
     static int primera_vez = 1;
