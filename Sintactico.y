@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "y.tab.h"
+#include "tabla_simbolos.h"
 #define MAX_SIZE 1000
 
 int yystopparser = 0;
@@ -19,11 +20,13 @@ int num_errores = 0;
 char **polaca = NULL;
 int limite_polaca = 0;
 int idx = 0;
+int idx_var = 0;
 char condicion[4];
+char variables_definidas[1000][50];
 
 void volcar_polaca_en_archivo() {
     
-    FILE *f = fopen("polaca.txt", "w");
+    FILE *f = fopen("intermediate-code.txt", "w");
     if (!f) {
         printf("No se pudo abrir polaca.txt para escritura\n");
         return;
@@ -54,7 +57,7 @@ void volcar_polaca_en_archivo() {
     }
     fprintf(f, "\n");
     fclose(f);
-    printf("Archivo polaca.txt generado.\n");
+    printf("Archivo intermediate-code.txt generado.\n");
 }
 
 static void reservar(int capacidad) {
@@ -129,6 +132,15 @@ void reemplazar_en_polaca(int posicion, int valor) {
     polaca[posicion] = buffer;
 }
 
+bool ya_definida(char* var) {
+    for (int i = 0; i < 1000; i++) {
+        if (strcmp(variables_definidas[i], var) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 Stack pila;
 
 
@@ -193,11 +205,23 @@ lista_ids:
     { 
         printf("Variable: %s\n", $1); 
         $$ = $1;
+        if(ya_definida($1)) {
+            printf("ERROR: Variable %s ya definida\n", $1);
+            exit(1);
+        } else {
+            strcpy(variables_definidas[idx_var++], $1);
+        }
     }
     | lista_ids COMA ID
     { 
         printf("Variable adicional: %s\n", $3); 
-        $$ = $1;
+        $$ = $3;
+        if(ya_definida($3)) {
+            printf("ERROR: Variable %s ya definida\n", $3);
+            exit(1);
+        } else {
+            strcpy(variables_definidas[idx_var++], $3);
+        }
     }
     ;
 

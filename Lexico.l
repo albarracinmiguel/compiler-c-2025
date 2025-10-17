@@ -3,18 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "y.tab.h"
+#include "tabla_simbolos.h"
 
 extern FILE *yyin;
 extern YYSTYPE yylval;
-
-// Estructura para tabla de simbolos
-typedef struct {
-    char nombre[50];
-    char tipo[20];
-    char valor[50];
-    int longitud;
-    int linea;
-} Simbolo;
 
 Simbolo tabla_simbolos[1000];
 int num_simbolos = 0;
@@ -119,6 +111,21 @@ void generar_tabla_simbolos() {
         fclose(archivo);
         printf("Tabla de simbolos generada en 'symbol-table.txt'\n");
     }
+}
+
+const Simbolo* obtener_tabla_simbolos(int* cantidad) {
+    if (cantidad) *cantidad = num_simbolos;
+    return tabla_simbolos;
+}
+
+const Simbolo* obtener_simbolo_por_nombre(const char* nombre) {
+    if (!nombre) return NULL;
+    for (int i = 0; i < num_simbolos; ++i) {
+        if (strcmp(tabla_simbolos[i].nombre, nombre) == 0) {
+            return &tabla_simbolos[i];
+        }
+    }
+    return NULL;
 }
 
 // Funcion de inicializacion del lexer
