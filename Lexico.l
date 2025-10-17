@@ -194,7 +194,7 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
     printf("Constante: %s (normalizada: %s)\n", yytext, numero_normalizado);
     // Verificar rango de constantes
     long valor = atol(numero_normalizado);
-    if (valor > 2147483647) {
+    if (valor > 32767 || valor < -32768) {
         printf("ERROR: Constante decimal excede el rango permitido: %s\n", numero_normalizado);
         exit(1);
     }
@@ -229,6 +229,12 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
     normalizar_numero_real(numero_normalizado);
     
     printf("Constante real: %s (normalizada: %s)\n", yytext, numero_normalizado);
+    
+    double valor_real = atof(numero_normalizado);
+    if (valor_real > 2147483647.0 || valor_real < -2147483648.0) {
+        printf("ERROR: Constante real excede el rango permitido: %s\n", numero_normalizado);
+        exit(1);
+    }
     agregar_simbolo(numero_normalizado, "CONSTANTE_REAL", numero_normalizado, yylineno);
     yylval.sval = strdup(numero_normalizado);
     return CTE_REAL;
@@ -244,6 +250,10 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
     // sacar las comillas
     char contenido[100];
     int len = strlen(yytext);
+    if (len > 50){
+        printf("ERROR: CTE String excede la longitud maxima permitida: %s\n", yytext);
+        exit(1);
+    }
     strncpy(contenido, yytext + 1, len - 2);
     contenido[len - 2] = '\0';
     
@@ -260,14 +270,13 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
         primera_vez = 0;
     }
     
-    // sacar apostrofes
-    char contenido[10];
+    char contenido[2];
     contenido[0] = yytext[1];
     contenido[1] = '\0';
     
     printf("Constante char: %s (contenido: %s)\n", yytext, contenido);
     agregar_simbolo(contenido, "CONSTANTE_CHAR", contenido, yylineno);
-    yylval.ival = yytext[1];
+    yylval.sval = strdup(contenido);
     return CTE_CHAR;
 }
 
@@ -302,7 +311,6 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
 }
 "else"          { printf("Palabra reservada: else\n"); return ELSE; }
 "while"         { printf("Palabra reservada: while\n"); return WHILE; }
-"return"        { printf("Palabra reservada: return\n"); return RETURN; }
 "int"           { printf("Palabra reservada: int\n"); return INT; }
 "float"         { printf("Palabra reservada: float\n"); return FLOAT; }
 "char"          { printf("Palabra reservada: char\n"); return CHAR; }
@@ -313,6 +321,7 @@ COMENTARIO_BLOQUE "#+"([^+]|"+"[^#])*"+#"
 "void"          { printf("Palabra reservada: void\n"); return VOID; }
 "main"          { printf("Palabra reservada: main\n"); return MAIN; }
 "write"         { printf("Palabra reservada: write\n"); return WRITE; }
+"read"         { printf("Palabra reservada: read\n"); return READ; }
 "equalExpressions" { printf("Funcion: equalExpressions\n"); return EQUAL_EXPRESSIONS; }
 "AND"            { printf("Operador AND: %s\n", yytext); return OP_AND; }
 "OR"             { printf("Operador OR: %s\n", yytext); return OP_OR; }

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "y.tab.h"
-#define MAX_SIZE 100
+#define MAX_SIZE 1000
 
 int yystopparser = 0;
 extern FILE *yyin;
@@ -16,11 +16,13 @@ int nivel_anidamiento = 0;
 int num_errores = 0;
 
 // definiciones para polaca
-char* polaca[1000];
+char **polaca = NULL;
+int limite_polaca = 0;
 int idx = 0;
 char condicion[4];
 
 void volcar_polaca_en_archivo() {
+    
     FILE *f = fopen("polaca.txt", "w");
     if (!f) {
         printf("No se pudo abrir polaca.txt para escritura\n");
@@ -28,8 +30,9 @@ void volcar_polaca_en_archivo() {
     }
     // calcular el ancho maximo
     int max_len = 0;
-    char buffer[20];
+    char buffer[100];
     for (int i = 0; i < idx; i++) {
+        
         int len = polaca[i] ? strlen(polaca[i]) : 0;
         if (len > max_len) max_len = len;
         //puede pasar que el numero sea mas ancho
@@ -52,6 +55,21 @@ void volcar_polaca_en_archivo() {
     fprintf(f, "\n");
     fclose(f);
     printf("Archivo polaca.txt generado.\n");
+}
+
+static void reservar(int capacidad) {
+    if (limite_polaca >= capacidad) return;
+    int nuevo_limite = limite_polaca ? limite_polaca : 64;
+    while (nuevo_limite < capacidad) nuevo_limite *= 2;
+    char **tmp = (char**)realloc(polaca, nuevo_limite * sizeof(char*));
+    if (!tmp) {
+        printf("Error de memoria ampliando polaca a %d elementos\n", nuevo_limite);
+        exit(1);
+    }
+    // inicializa en null
+    for (int i = limite_polaca; i < nuevo_limite; ++i) tmp[i] = NULL;
+    polaca = tmp;
+    limite_polaca = nuevo_limite;
 }
 
 //implementacion de pila de int para los branches
@@ -91,6 +109,7 @@ int pop(Stack *stack) {
 }
 
 void insertar_en_polaca(char* elemento) {
+    reservar(idx + 1);
     polaca[idx++] = elemento;
 }
 
@@ -98,6 +117,7 @@ void insertar_int_en_polaca(int valor) {
     char* buffer = (char*)malloc(20 * sizeof(char));
     if (!buffer) return;
     sprintf(buffer, "%d", valor);
+    reservar(idx + 1);
     polaca[idx++] = buffer;
 }
 
@@ -105,6 +125,7 @@ void reemplazar_en_polaca(int posicion, int valor) {
     char* buffer = (char*)malloc(20 * sizeof(char));
     if (!buffer) return;
     sprintf(buffer, "%d", valor);
+    //reservar(posicion + 1);
     polaca[posicion] = buffer;
 }
 
@@ -124,12 +145,12 @@ Stack pila;
 %token OP_IGUAL OP_DIF OP_MENOR OP_MAYOR OP_MENOR_IGUAL OP_MAYOR_IGUAL
 %token OP_AND OP_OR OP_NOT
 %token PAR_A PAR_C COR_A COR_C LLAVE_A LLAVE_C PUNTO_COMA COMA PUNTO DOS_PUNTOS
-%token IF ELSE WHILE RETURN WRITE EQUAL_EXPRESSIONS CONVDATE
+%token IF ELSE WHILE RETURN WRITE READ EQUAL_EXPRESSIONS CONVDATE
 %token INT FLOAT CHAR STRING BOOL TRUE FALSE VOID MAIN CONST INIT
 
 %type <ival> expresion termino factor
-%type <ival> condicion expresion_logica
-%type <ival> sentencia sentencia_compuesta
+%type <ival> condicion expresion_logica expresion_relacional
+%type <ival> sentencia asignacion
 %type <ival> seleccion iteracion
 %type <ival> bloque_init lista_declaraciones declaracion_grupo
 %type <sval> lista_ids tipo
@@ -140,6 +161,7 @@ Stack pila;
 %left OP_MENOR OP_MAYOR OP_MENOR_IGUAL OP_MAYOR_IGUAL
 %left OP_SUM OP_RES
 %left OP_MUL OP_DIV OP_MOD
+%right MENOS_UNARIO
 %right OP_POT
 %right OP_NOT
 
@@ -194,36 +216,31 @@ sentencias:
     ;
 
 sentencia:
-    sentencia_simple
-    | sentencia_compuesta
+    asignacion
+    | expresion
     | seleccion
     | iteracion
-    | RETURN expresion
     { printf("Sentencia return\n"); }
+    | WRITE PAR_A CTE_STRING PAR_C
+    { printf("Sentencia write\n"); }
+    | READ PAR_A CTE_STRING PAR_C
+    { printf("Sentencia read\n"); }
     ;
 
-sentencia_simple:
+asignacion:
     ID OP_AS expresion
     { printf("Asignacion: %s = expresion\n", $1); 
       insertar_en_polaca($1);
       insertar_en_polaca(":=");
     }
-    | expresion
-    | WRITE PAR_A CTE_STRING PAR_C
-    { printf("Sentencia write\n"); }
-    ;
-
-sentencia_compuesta:
-    LLAVE_A sentencias LLAVE_C
-    { printf("Bloque de sentencias\n"); }
     ;
 
 seleccion:
-    IF PAR_A condicion PAR_C sentencia
+    IF PAR_A condicion PAR_C LLAVE_A sentencias LLAVE_C
     { printf("Seleccion if\n");
     reemplazar_en_polaca(pop(&pila), idx);
     }
-    | IF PAR_A condicion PAR_C sentencia sentencia_else sentencia
+    | IF PAR_A condicion PAR_C LLAVE_A sentencias LLAVE_C sentencia_else LLAVE_A sentencias LLAVE_C
     { printf("Seleccion if-else\n");
     reemplazar_en_polaca(pop(&pila), idx);
     }
@@ -239,8 +256,23 @@ sentencia_else:
     }
     ;
 iteracion:
-    WHILE PAR_A condicion PAR_C sentencia_compuesta
-    { printf("Iteracion while\n"); }
+    while PAR_A condicion PAR_C LLAVE_A sentencias fin_iteracion
+    { printf("Iteracion while\n");}
+    ;
+while:
+WHILE
+{
+    push(&pila, idx);
+    insertar_en_polaca("ET");
+}
+;
+fin_iteracion:
+LLAVE_C
+    { 
+        insertar_en_polaca("BI");
+        reemplazar_en_polaca(pop(&pila), idx+1);
+        insertar_int_en_polaca(pop(&pila));
+    }
     ;
 
 condicion:
@@ -253,14 +285,12 @@ condicion:
 
 expresion_logica:
     expresion_relacional
-    | expresion_logica OP_AND expresion_logica
+    | expresion_relacional OP_AND expresion_relacional
     { printf("Expresion logica AND\n"); }
-    | expresion_logica OP_OR expresion_logica
+    | expresion_relacional OP_OR expresion_relacional
     { printf("Expresion logica OR\n"); }
-    | OP_NOT expresion_logica
+    | OP_NOT expresion_relacional
     { printf("Expresion logica NOT\n"); }
-    | PAR_A expresion_logica PAR_C
-    { printf("Expresion logica entre parentesis\n"); }
     ;
 
 expresion_relacional:
@@ -283,8 +313,6 @@ expresion_relacional:
         | expresion OP_MAYOR_IGUAL expresion
         { printf("Condicion mayor o igual que\n"); 
             strcpy(condicion, "BLT"); }
-    | PAR_A expresion_relacional PAR_C
-    { printf("Condicion relacional entre parentesis\n"); }
     ;
 
 expresion:
@@ -296,6 +324,8 @@ expresion:
     | expresion OP_RES termino
     { printf("Expresion - termino\n"); 
       insertar_en_polaca("-"); }
+    | OP_RES expresion %prec MENOS_UNARIO
+    { printf("Expresion con signo negativo\n"); }
     ;
 
 termino:
@@ -333,10 +363,6 @@ factor:
       insertar_en_polaca($1); }
     | PAR_A expresion PAR_C
     { printf("Expresion entre parentesis es factor\n"); }
-    | OP_SUM factor
-    { printf("Factor con signo positivo\n"); }
-    | OP_RES factor
-    { printf("Factor con signo negativo\n"); }
     | TRUE
     { printf("Valor logico true es factor\n"); }
     | FALSE
