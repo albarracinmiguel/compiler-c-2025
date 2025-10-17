@@ -246,9 +246,15 @@ sentencia:
     | iteracion
     { printf("Sentencia return\n"); }
     | WRITE PAR_A CTE_STRING PAR_C
-    { printf("Sentencia write\n"); }
+    { printf("Sentencia write\n");
+    insertar_en_polaca("WRITE");
+    insertar_en_polaca($3);
+    }
     | READ PAR_A CTE_STRING PAR_C
-    { printf("Sentencia read\n"); }
+    { printf("Sentencia read\n");
+    insertar_en_polaca("READ");
+    insertar_en_polaca($3);
+    }
     ;
 
 asignacion:
@@ -392,9 +398,15 @@ factor:
     | FALSE
     { printf("Valor logico false es factor\n"); }
     | EQUAL_EXPRESSIONS PAR_A lista_expresiones PAR_C
-    { printf("Funcion equalExpressions\n"); }
+    { printf("Funcion equalExpressions\n"); 
+    insertar_en_polaca("EQUAL_EXPRESSIONS");
+    //revisar
+    }
     | CONVDATE PAR_A CTE OP_RES CTE OP_RES CTE PAR_C
-    { printf("Funcion convDate\n"); }
+    { printf("Funcion convDate\n");
+    insertar_en_polaca("CONVDATE");
+    //revisar
+    }
     ;
 
 lista_expresiones:
